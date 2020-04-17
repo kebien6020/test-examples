@@ -1,0 +1,1002 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/monokai.css">
+
+    <!-- Overrides -->
+    <link rel="stylesheet" href="lib/css/kevin.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section data-markdown>
+          <textarea data-template>
+            # Estructuras de Datos Avanzadas
+
+            Presentado por Kevin Peña
+          </textarea>
+        </section>
+
+        <section data-markdown id="cola-pila">
+          <textarea data-template>
+            ## Cola y Pila
+
+            Son estructuras de datos lineales caracterizadas por el orden que
+            tienen sus elementos en entrar y salir de la estructura.
+
+            - FIFO (Cola) <!-- .element: class="fragment" data-fragment-index="1" -->
+            - LIFO (Pila) <!-- .element: class="fragment" data-fragment-index="2" -->
+          </textarea>
+        </section>
+
+        <section id="cola">
+          <h2>Cola</h2>
+          <ul>
+            <li>Su nombre es una analogía a una cola o fila en la vida real.</li>
+            <li>Es First In First Out (El primero en entrar es el primero en salir).</li>
+          </ul>
+          <style>
+            .queue-anim {
+              margin-top: 64px;
+              display: flex;
+              flex-direction: row;
+              justify-content: center;
+            }
+            .queue-anim .elem {
+              width: 48px;
+              height: 96px;
+              background-color: #eb4034;
+              border: 1px solid white;
+              margin: 4px;
+            }
+            .queue-anim .first {
+              opacity: 0;
+              transform: rotate(45deg);
+              transform-origin: right -50%;
+            }
+            .queue-anim.push {
+              transform: translateX(58px);
+              transition: all .25s ease-in;
+            }
+            .queue-anim.push .first {
+              transform: none;
+              opacity: 1;
+              transition: all .25s ease-in;
+            }
+            .queue-anim .last {
+              opacity: 1;
+              transform: none;
+              transform-origin: left 150%;
+            }
+            .queue-anim.pop .last {
+              opacity: 0;
+              transform: rotate(45deg);
+              transition: all .25s ease-in;
+            }
+          </style>
+          <div class="queue-anim">
+            <div class="elem first"></div>
+            <div class="elem"></div>
+            <div class="elem"></div>
+            <div class="elem"></div>
+            <div class="elem last"></div>
+          </div>
+          <script type="text/javascript">
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms))
+            }
+            async function queueAnim() {
+              const anim = document.querySelector('.queue-anim')
+              await sleep(2000)
+              while (true) {
+                anim.classList.add('push')
+                await sleep(1500)
+                anim.classList.add('pop')
+                await sleep(1000)
+                anim.classList.remove('pop', 'push')
+                await sleep(250)
+              }
+            }
+            queueAnim()
+          </script>
+        </section>
+
+        <section id="cola-ejemplo">
+          <h2>Ejemplo</h2>
+          <div class="queue-example">
+            <div class="add-task">
+              <input id="datos" type="text" placeholder="Datos de la tarea">
+              <input id="dificultad" type="text" placeholder="Dificultad">
+              <button>Agregar</button>
+            </div>
+            <div class="out-container">
+              <div>
+                <h5>Cola</h5>
+                <div class="queue"></div>
+              </div>
+              <div>
+                <h5>Tareas Finalizadas</h5>
+                <div class="completed"></div>
+              </div>
+            </div>
+          </div>
+          <style>
+            .queue-example .out-container {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-around;
+            }
+            .queue-example .out-container > div {
+              flex: 1;
+              min-height: 200px;
+              max-width: 400px;
+              max-height: 300px;
+              background-color: #272822;
+              font-family: monospace;
+              font-size: 12px;
+              word-wrap: break-word;
+              text-align: left;
+              overflow-y: auto;
+            }
+          </style>
+          <script type="text/javascript" src="lib/js/sha256.min.js"></script>
+          <script type="text/javascript">
+            class Cola {
+              constructor() {
+                this.array = []
+              }
+
+              push(elem) {
+                this.array.unshift(elem)
+              }
+
+              pop() {
+                return this.array.pop()
+              }
+
+              peek() {
+                return this.array[this.array.length - 1]
+              }
+
+              empty() {
+                return this.array.length === 0
+              }
+            }
+
+            const cola = new Cola()
+
+            function agregarTarea(data, dificultad, onAvance) {
+              const tarea = new Tarea(data, dificultad, onAvance)
+
+              cola.push(tarea)
+              actualizarCola()
+            }
+
+            async function procesar() {
+              while (true) {
+                if (cola.empty()) {
+                  await sleep(0)
+                } else {
+                  const tareaAProcesar = cola.peek()
+                  const resultado = await tareaAProcesar.ejecutar()
+                  cola.pop()
+                  agregarResultado(tareaAProcesar, resultado)
+                  actualizarCola()
+                }
+              }
+            }
+
+            procesar()
+
+            // Detalles para mostrar resultados en pantalla
+
+            function agregarResultado(tarea, resultado) {
+              const resElem = document.querySelector('.queue-example .completed')
+              const p = document.createElement('p')
+              p.innerHTML = `${tarea.datos}${tarea.nonce} (${tarea.dificultad}): ${resultado}`
+              resElem.appendChild(p)
+            }
+
+            function actualizarCola() {
+              const resElem = document.querySelector('.queue-example .queue')
+              let html = ''
+              for (let i = 0; i < cola.array.length; ++i) {
+                const tarea = cola.array[i]
+                html += `<p>${tarea.datos} (${tarea.dificultad})`
+                if (i === (cola.array.length - 1)) {
+                  html += '<span id="trabajo"></span>'
+                }
+                html += '</p>'
+              }
+              resElem.innerHTML = html;
+            }
+
+            document.querySelector('.queue-example button').addEventListener('click', () => {
+              const datos = document.querySelector('.queue-example #datos').value
+              const dificultad = Number(document.querySelector('.queue-example #dificultad').value)
+              const onAvance = (nonce, hash) => {
+                const resElem = document.querySelector('.queue-example #trabajo')
+                if (resElem) {
+                  resElem.innerHTML = `${nonce}: ${hash}`
+                }
+              }
+
+              agregarTarea(datos, dificultad, onAvance)
+              actualizarCola()
+
+              document.querySelector('.queue-example #datos').value = ''
+              document.querySelector('.queue-example #dificultad').value = ''
+              document.querySelector('.queue-example #datos').focus()
+            })
+
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms))
+            }
+
+            class Tarea {
+              constructor(datos, dificultad, onAvance) {
+                this.datos = datos
+                this.dificultad = dificultad
+                this.onAvance = onAvance
+                this.nonce = -1
+              }
+
+              async ejecutar() {
+                let hash = null
+                do {
+                  this.nonce++
+                  hash = sha256.create();
+                  hash.update(this.datos + String(this.nonce));
+                  if (this.onAvance && this.nonce % 7 === 0) {
+                    const binario = this.digestABinario(hash.digest())
+                    this.onAvance(this.nonce, binario)
+                  }
+                  await sleep(0)
+                } while (!this.verificarRespuesta(hash.digest(), this.dificultad))
+                return this.digestABinario(hash.digest())
+              }
+
+              digestABinario(digest) {
+                let binario = ''
+                for (const byte of digest) {
+                  binario += byte.toString(2).padStart(8, '0')
+                }
+                return binario
+              }
+
+              verificarRespuesta(hashDigest, dificultad) {
+                let binary = ''
+                let i = 0
+                do {
+                  binary += hashDigest[i].toString(2).padStart(8, '0')
+                  ++i
+                } while (binary.length < dificultad)
+
+                return binary.startsWith('0'.repeat(dificultad))
+              }
+            }
+          </script>
+        </section>
+
+        <section data-markdown id="cola-codigo">
+          <textarea data-template>
+            # Código
+
+            ```js
+            class Cola {
+              constructor() {
+                this.array = []
+              }
+
+              push(elem) {
+                this.array.unshift(elem)
+              }
+
+              pop() {
+                return this.array.pop()
+              }
+
+              peek() {
+                return this.array[this.array.length - 1]
+              }
+
+              empty() {
+                return this.array.length === 0
+              }
+            }
+
+            const cola = new Cola()
+
+            function agregarTarea(data, dificultad, onAvance) {
+              const tarea = new Tarea(data, dificultad, onAvance)
+
+              cola.push(tarea)
+              actualizarCola()
+            }
+
+            async function procesar() {
+              while (true) {
+                if (cola.empty()) {
+                  await sleep(0)
+                } else {
+                  const tareaAProcesar = cola.peek()
+                  const resultado = await tareaAProcesar.ejecutar()
+                  cola.pop()
+                  agregarResultado(tareaAProcesar, resultado)
+                  actualizarCola()
+                }
+              }
+            }
+
+            procesar()
+
+            //
+            // Detalles para mostrar resultados en pantalla
+            //
+
+            function agregarResultado(tarea, resultado) {
+              const resElem = document.querySelector('.queue-example .completed')
+              const p = document.createElement('p')
+              p.innerHTML = `${tarea.datos}${tarea.nonce} (${tarea.dificultad}): ${resultado}`
+              resElem.appendChild(p)
+            }
+
+            function actualizarCola() {
+              const resElem = document.querySelector('.queue-example .queue')
+              let html = ''
+              for (let i = 0; i < cola.array.length; ++i) {
+                const tarea = cola.array[i]
+                html += `<p>${tarea.datos} (${tarea.dificultad})`
+                if (i === (cola.array.length - 1)) {
+                  html += '<span id="trabajo"></span>'
+                }
+                html += '</p>'
+              }
+              resElem.innerHTML = html;
+            }
+
+            document.querySelector('.queue-example button').addEventListener('click', () => {
+              const datos = document.querySelector('.queue-example #datos').value
+              const dificultad = Number(document.querySelector('.queue-example #dificultad').value)
+              const onAvance = (nonce, hash) => {
+                const resElem = document.querySelector('.queue-example #trabajo')
+                if (resElem) {
+                  resElem.innerHTML = `${nonce}: ${hash}`
+                }
+              }
+
+              agregarTarea(datos, dificultad, onAvance)
+              actualizarCola()
+
+              document.querySelector('.queue-example #datos').value = ''
+              document.querySelector('.queue-example #dificultad').value = ''
+              document.querySelector('.queue-example #datos').focus()
+            })
+
+            //
+            // Implementacion de la clase Tarea
+            //
+
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms))
+            }
+
+            class Tarea {
+              constructor(datos, dificultad, onAvance) {
+                this.datos = datos
+                this.dificultad = dificultad
+                this.onAvance = onAvance
+                this.nonce = -1
+              }
+
+              async ejecutar() {
+                let hash = null
+                do {
+                  this.nonce++
+                  hash = sha256.create();
+                  hash.update(this.datos + String(this.nonce));
+                  if (this.onAvance && this.nonce % 7 === 0) {
+                    const binario = this.digestABinario(hash.digest())
+                    this.onAvance(this.nonce, binario)
+                  }
+                  await sleep(0)
+                } while (!this.verificarRespuesta(hash.digest(), this.dificultad))
+                return this.digestABinario(hash.digest())
+              }
+
+              digestABinario(digest) {
+                let binario = ''
+                for (const byte of digest) {
+                  binario += byte.toString(2).padStart(8, '0')
+                }
+                return binario
+              }
+
+              verificarRespuesta(hashDigest, dificultad) {
+                let binary = ''
+                let i = 0
+                do {
+                  binary += hashDigest[i].toString(2).padStart(8, '0')
+                  ++i
+                } while (binary.length < dificultad)
+
+                return binary.startsWith('0'.repeat(dificultad))
+              }
+            }
+            ```
+          </textarea>
+        </section>
+
+        <section id="pila">
+          <h2>Pila</h2>
+          <ul>
+            <li>Su nombre es una analogía a apilar cosas en la vida real.</li>
+            <li>Es Last In First Out (El último en entrar es el primero en salir).</li>
+          </ul>
+          <style>
+            .stack-anim {
+              margin-top: 64px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+            }
+            .stack-anim .elem {
+              width: 128px;
+              height: 48px;
+              background-color: #34a5eb;
+              border: 1px solid white;
+              margin: 4px;
+              transition: all .25s ease-out;
+            }
+            .stack-anim .elem.out {
+              opacity: 0;
+              transform: rotate(-45deg);
+              transition: none;
+            }
+            .stack-anim .elem.push {
+              opacity: 1;
+              transform: none;
+              transform-origin: -50% bottom;
+              transition-property: opacity, transform;
+            }
+
+            .stack-anim .elem.remove {
+              opacity: 0;
+              transform: rotate(45deg);
+              transform-origin: 150% bottom;
+              transition-property: opacity, transform;
+            }
+          </style>
+          <div class="stack-anim">
+            <div class="elem out"></div>
+            <div class="elem out"></div>
+            <div class="elem out"></div>
+            <div class="elem"></div>
+            <div class="elem"></div>
+          </div>
+          <script type="text/javascript">
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms))
+            }
+            async function stackAnim() {
+              const anim = document.querySelector('.stack-anim')
+              const elems = document.querySelectorAll('.stack-anim .elem')
+              await sleep(2000)
+              while (true) {
+                elems[2].className = 'elem push'
+                await sleep(1000)
+                elems[1].className = 'elem push'
+                await sleep(1000)
+                elems[0].className = 'elem push'
+                await sleep(3000)
+                elems[0].className = 'elem remove'
+                await sleep(1000)
+                elems[1].className = 'elem remove'
+                await sleep(1000)
+                elems[2].className = 'elem remove'
+                await sleep(500)
+                elems[0].className = 'elem out'
+                elems[1].className = 'elem out'
+                elems[2].className = 'elem out'
+                await sleep(2500)
+              }
+            }
+            stackAnim()
+          </script>
+        </section>
+
+        <section id="pila-ejemplo">
+          <h2>Ejemplo</h2>
+          <iframe width="800px" height="400px" src="https://godbolt.org/e#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAKxACZSAbAQwDtRkBSWgIS%2B9IDOqAK7FkmEAHIuAZjwtkDYVgDUHGQGEmDYCUIIAtuuwcADAEFZ8xcsxrNTYsSYBPY2cu05CpavUa8VAECYkwmIxkTCysfW3sNYKZkAGt3aK9rXzt/YOJ5YDTLCwJMAwAHZhL/AhcyzBZwuw1UFgJSFRq6hoM7ABVCgCNUVAYVNFa8eswIceCVZtauADYx9tmCFX7aFcwGUoBKNQB2XgsVc5VQglEWFWD0EBAAM3l0CHvHgcxgeRn99o%2BIHqb2Q/xUuwOKjAYHUABE7gQHkCWCD9upTpYjrCPB4SuVKphqrV6o15i02h1id0%2BoUmMIiCpXnhxDMWnMFgRlqsxmyNlsdnsDIcOCcPBcVHSGYR7PDAS8Ue9EZ9vr9QQClcjUe0IUL0WKLlcbgikfhEgppoCvj8WH92oQ0TIMSLsdELAB6N0eD0qACSLGZgRUqmYKgYqB%2ByCYXs9rvMQxGl0wADc8AJHAB9AbaVjiJjoVCslhzQG5fJc%2BohPNMYWis4XdbGx6OZwuUOpghMdNMAahGXHbhgaQnQftQccACsA8ko8kEDHWL1dfODcBzdcbcS6eQkycTD7IqnzpHUOk49hx8H%2B3n2MdOKXjZAiRS/mQCEcxhUZTwzEXRXM4qeEgVAgSVUC5ZAVBAcFWmcdBq37fVxXOPAnmA8YCEmFhpgYdtO27UI1n2GsMSQ0jP2/JgADoymEAQED%2BX8yOOeFdgEOwULQ8lMOw3Ctx3ZxCOIxCmJ5IsNlAz8gj7JkWRwzdt0wXdCMYkTkNQiAv2YSiBDwAAvaZhUiFRTDUbYuQgOSOy7HtCUnMoggneE4ThcitKIMoICIoT71U85NKo%2ByPIdEjfOdcEGDYhCfN8w1iFuJ5tDYlTVOdYTxVS%2B8Mr/cVYtufztL0gyZRc0xfyyjwGwkzAqFKCpUAARn3WhaAPCdeDPA9PNShdmt/Sr6VQcEavxVBaCalrJ1ahdRSxfYIEcrgWtvWN5A2AwmF%2Bbz/3rXkJQG6DKzgvtqtqsN6rK%2B8OIgUIUzTYhM2zc08wLCtYOrLamMBNB6XifwDre37NFMsaAFpgcBjRge4R7c3zCcNBYRbkuY8LIta6Lzi%2BkQNn8P7XqrCHwbBxbCcWn0DCzZgnrh8cEaR5btvOcqsUkf4GCkcdpxYKRTGnVApA0Pg%2BDuEQxGyLxaGnAgedZ/5khAcdTEYKQABYuZl0h%2BckacBBAJXpckXn/jgWAkEwAAPTBkAGsgKBA4hgAEAAFVhdgAZQQVAAHduckerpzQcoKIwloXawhgPe933edIQPNMUkBgAATnq2PUCDvZiAAeXpSOfY1i2rfMB3de10hC%2BQN3EXkKRpyp9ghZ4Rg8AGXXIH%2BVAyhDospBB%2B44U4Hg%2BHqo4VBBrOBB10XxDoQRq5YMP3c9/O/dZ5XJE50ho75qRzYADiWEGlhVlRgGQCCk8oxrsEt62iGIYDcEIIDZFoQ5BaHngpZlojSAQMIsDEEoHLBWSt2aSDVqQAwIB6qmCVtvTWtdBB61IAbI2bMpCSy3hrLW39Day1IEmRSOkWggBVkAA%3D%3D%3D"></iframe>
+        </section>
+
+        <section data-markdown id="arbol">
+          <textarea data-template>
+            ## Arbol
+
+            - Estructura no lineal
+            - Jerárquica
+            - Puede ser definido recursivamente como una colección de nodos (empezando en el nodo raiz).
+            - Cada nodo es una estructura de datos con un valor y una lista de nodos.
+          </textarea>
+        </section>
+
+        <section id="arbol-ejemplo">
+
+
+          <h3>Ejemplo</h3>
+          <div class="container tree-example">
+            <div class="col">
+              <input id="new-value">
+              <button id="add">Añadir</button>
+              <button id="del">Eliminar</button>
+            </div>
+            <div class="col out">
+
+            </div>
+          </div>
+
+          <style>
+            .container{
+                display: flex;
+            }
+            .col{
+                flex: 1;
+            }
+
+            .tree-example .out {
+              min-height: 200px;
+              max-width: 400px;
+              max-height: 400px;
+              background-color: #272822;
+              font-family: monospace;
+              font-size: 12px;
+              word-wrap: break-word;
+              text-align: left;
+              overflow-y: auto;
+              white-space: pre;
+            }
+          </style>
+          <script type="text/javascript">
+
+          class Node {
+            constructor(data) {
+              this.data = data;
+              this.left = null;
+              this.right = null;
+            }
+          }
+
+          class BinarySearchTree {
+            constructor() {
+              this.root = null
+            }
+
+            insert(data) {
+              const newNode = new Node(data);
+              if(this.root === null)
+                // Si el arbol está vacio insertar nodo como raiz
+                this.root = newNode;
+              else
+                // encontrar la posicion correcta e insertar
+                this.insertNode(this.root, newNode);
+            }
+
+            insertNode(node, newNode) {
+                if(newNode.data < node.data) {
+                  if(node.left === null)
+                    node.left = newNode;
+                  else
+                    this.insertNode(node.left, newNode);
+                } else {
+                  if(node.right === null)
+                    node.right = newNode;
+                  else
+                    this.insertNode(node.right,newNode);
+                }
+            }
+
+            remove(data) {
+              // Se reasigna root en caso de que haya cambiado como resultado
+              // de remover el nodo
+              this.root = this.removeNode(this.root, data);
+            }
+
+            removeNode(node, key) {
+              if(node === null)
+                return null;
+              else if(key < node.data) {
+                node.left = this.removeNode(node.left, key);
+                return node;
+              } else if(key > node.data) {
+                node.right = this.removeNode(node.right, key);
+                return node;
+              } else {
+                if(node.left === null && node.right === null) {
+                  node = null;
+                  return node;
+                }
+
+                if(node.left === null) {
+                  node = node.right;
+                  return node;
+                } else if(node.right === null) {
+                  node = node.left;
+                  return node;
+                }
+
+                const aux = this.findMinNode(node.right);
+                node.data = aux.data;
+
+                node.right = this.removeNode(node.right, aux.data);
+                return node;
+              }
+            }
+
+            // Escribe el arbol a consola en in-orden
+            inorder() {
+              return this.inorderNode(this.root)
+            }
+
+            inorderNode(node) {
+              if(node !== null) {
+                return this.inorderNode(node.left) +
+                       node.data + ' ' +
+                       this.inorderNode(node.right);
+              }
+              return '';
+            }
+
+            // Encuentra el menor nodo en el arbol
+            findMinNode(node) {
+              if(node.left === null)
+                return node;
+              else
+                return this.findMinNode(node.left);
+            }
+
+            // Busca un nodo con el dato especificado
+            // Esto es busqueda binaria
+            searchNode(node, data) {
+              // Arbol vacio -> null
+              if(node === null)
+                return null;
+
+              // Si el dato es menor buscar a la izquierda
+              else if(data < node.data)
+                return this.searchNode(node.left, data);
+
+              // Si es mayor buscar a la derecha
+              else if(data > node.data)
+                return this.searchNode(node.right, data);
+
+              // Si es igual lo encontramos
+              else
+                return node;
+            }
+
+            search(data) {
+              return this.searchNode(this.root, data);
+            }
+          }
+
+          // Inicializacion de la estructura
+
+          const BST = new BinarySearchTree();
+
+          BST.insert(15);
+          BST.insert(25);
+          BST.insert(10);
+          BST.insert(7);
+          BST.insert(22);
+          BST.insert(17);
+          BST.insert(13);
+          BST.insert(5);
+          BST.insert(9);
+          BST.insert(27);
+
+          // Mostrar en pantalla
+          function actualizarArbolPantalla() {
+            const elem = document.querySelector('.tree-example .out')
+            let html = `Arbol In-Orden: ${BST.inorder()}\nArbol: `
+            html += JSON.stringify(BST, null, 2);
+            elem.innerHTML = html;
+          }
+
+          actualizarArbolPantalla()
+
+          // Al añadir
+          document.querySelector('.tree-example #add').addEventListener('click', () => {
+            const data = document.querySelector('.tree-example input').value
+            BST.insert(Number(data))
+            actualizarArbolPantalla()
+          })
+
+          //Al eliminar
+          document.querySelector('.tree-example #del').addEventListener('click', () => {
+            const data = document.querySelector('.tree-example input').value
+            BST.remove(Number(data))
+            actualizarArbolPantalla()
+          })
+          </script>
+        </section>
+
+        <section data-markdown id="arbol-codigo">
+          <textarea data-template>
+            ## Código
+
+            ```js
+            class Node {
+              constructor(data) {
+                this.data = data;
+                this.left = null;
+                this.right = null;
+              }
+            }
+
+            class BinarySearchTree {
+              constructor() {
+                this.root = null
+              }
+
+              insert(data) {
+                const newNode = new Node(data);
+                if(this.root === null)
+                  // Si el arbol está vacio insertar nodo como raiz
+                  this.root = newNode;
+                else
+                  // encontrar la posicion correcta e insertar
+                  this.insertNode(this.root, newNode);
+              }
+
+              insertNode(node, newNode) {
+                  if(newNode.data < node.data) {
+                    if(node.left === null)
+                      node.left = newNode;
+                    else
+                      this.insertNode(node.left, newNode);
+                  } else {
+                    if(node.right === null)
+                      node.right = newNode;
+                    else
+                      this.insertNode(node.right,newNode);
+                  }
+              }
+
+              remove(data) {
+                // Se reasigna root en caso de que haya cambiado como resultado
+                // de remover el nodo
+                this.root = this.removeNode(this.root, data);
+              }
+
+              removeNode(node, key) {
+                if(node === null)
+                  return null;
+                else if(key < node.data) {
+                  node.left = this.removeNode(node.left, key);
+                  return node;
+                } else if(key > node.data) {
+                  node.right = this.removeNode(node.right, key);
+                  return node;
+                } else {
+                  if(node.left === null && node.right === null) {
+                    node = null;
+                    return node;
+                  }
+
+                  if(node.left === null) {
+                    node = node.right;
+                    return node;
+                  } else if(node.right === null) {
+                    node = node.left;
+                    return node;
+                  }
+
+                  const aux = this.findMinNode(node.right);
+                  node.data = aux.data;
+
+                  node.right = this.removeNode(node.right, aux.data);
+                  return node;
+                }
+              }
+
+              // Escribe el arbol a consola en in-orden
+              inorder() {
+                return this.inorderNode(this.root)
+              }
+
+              inorderNode(node) {
+                if(node !== null) {
+                  return this.inorderNode(node.left) +
+                         node.data + ' ' +
+                         this.inorderNode(node.right);
+                }
+                return '';
+              }
+
+              // Encuentra el menor nodo en el arbol
+              findMinNode(node) {
+                if(node.left === null)
+                  return node;
+                else
+                  return this.findMinNode(node.left);
+              }
+
+              // Busca un nodo con el dato especificado
+              // Esto es busqueda binaria
+              searchNode(node, data) {
+                // Arbol vacio -> null
+                if(node === null)
+                  return null;
+
+                // Si el dato es menor buscar a la izquierda
+                else if(data < node.data)
+                  return this.searchNode(node.left, data);
+
+                // Si es mayor buscar a la derecha
+                else if(data > node.data)
+                  return this.searchNode(node.right, data);
+
+                // Si es igual lo encontramos
+                else
+                  return node;
+              }
+
+              search(data) {
+                return this.searchNode(this.root, data);
+              }
+            }
+
+            // Inicializacion de la estructura
+
+            const BST = new BinarySearchTree();
+
+            BST.insert(15);
+            BST.insert(25);
+            BST.insert(10);
+            BST.insert(7);
+            BST.insert(22);
+            BST.insert(17);
+            BST.insert(13);
+            BST.insert(5);
+            BST.insert(9);
+            BST.insert(27);
+
+            // Mostrar en pantalla
+            function actualizarArbolPantalla() {
+              const elem = document.querySelector('.tree-example .out')
+              let html = `Arbol In-Orden: ${BST.inorder()}\nArbol: `
+              html += JSON.stringify(BST, null, 2);
+              elem.innerHTML = html;
+            }
+
+            actualizarArbolPantalla()
+
+            // Al añadir
+            document.querySelector('.tree-example #add').addEventListener('click', () => {
+              const data = document.querySelector('.tree-example input').value
+              BST.insert(Number(data))
+              actualizarArbolPantalla()
+            })
+
+            //Al eliminar
+            document.querySelector('.tree-example #del').addEventListener('click', () => {
+              const data = document.querySelector('.tree-example input').value
+              BST.remove(Number(data))
+              actualizarArbolPantalla()
+            })
+            ```
+          </textarea>
+        </section>
+
+        <section data-markdown id="grafo">
+          <textarea data-template>
+            ## Grafo
+
+            - Estructura de datos no lineal.
+            - No es estrictamente jerarquica.
+            - Compuesta de Nodos (o vertices) y Aristas.
+          </textarea>
+        </section>
+
+        <section data-markdown id="grafo-clasif">
+          <textarea data-template>
+            ## Clasificación
+
+            - Segun si sus aristas tienen dirección: Dirijido o no dirigido. <!-- .element: class="fragment" data-fragment-index="1" -->
+            - Según si contiene ciclos: Cíclico o Acíclico. <!-- .element: class="fragment" data-fragment-index="2" -->
+            - Según si pueden haber multiple aristas entre 2 nodos: Grafo o multigrafo. <!-- .element: class="fragment" data-fragment-index="3" -->
+          </textarea>
+        </section>
+
+        <section id="grafo-ejemplo">
+					<style>
+						#grafo-ejemplo img {
+							border: none !important;
+							background-color: transparent !important;
+							box-shadow: none !important;
+						}
+						#grafo-ejemplo pre code {
+							max-height: 600px;
+						}
+					</style>
+
+					<h3>Ejemplo</h3>
+					<div class="container">
+						<div class="col" data-markdown>
+							<textarea data-template>
+								```cpp
+								template <typename T>
+								struct Nodo {
+									T data;
+									vector<Nodo*> aristas;
+
+									void conectar(Nodo* otro)
+									{
+										aristas.push_back(otro);
+									}
+								};
+
+								Nodo<int> n1{1}, n2{2},
+								          n3{3}, n4{4};
+								n1.conectar(&n2);
+								n1.conectar(&n4);
+								n2.conectar(&n4);
+								n3.conectar(&n1);
+								n3.conectar(&n2);
+								n4.conectar(&n3);
+
+								```
+							</textarea>
+						</div>
+						<div class="col">
+								<img src="lib/grafo.png">
+						</div>
+					</div>
+				</section>
+
+        <section data-markdown id="gracias">
+          <script type="text/template">
+            # Gracias
+          </script>
+        </section>
+      </div>
+    </div>
+
+    <script src="js/reveal.js"></script>
+
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/notes/notes.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true }
+        ],
+        hash: true,
+      });
+    </script>
+  </body>
+</html>

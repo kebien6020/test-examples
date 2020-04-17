@@ -114,7 +114,7 @@
           </textarea>
         </section>
 
-        <section data-markdown id="mocks-ides">
+        <section data-markdown id="mocks-ideas">
           <textarea data-template>
             ## Mocks
 
@@ -123,6 +123,56 @@
             Tratar de hacer el codigo mas testeable naturalmente lleva a un
             patron llamado "Dependency Injection", que consiste en pasar las
             dependencias como parametros en lugar de importarlas.
+          </textarea>
+        </section>
+
+        <section data-markdown id="unit-testing">
+          <textarea data-template>
+            ## Unit testing
+
+            Consiste en probar las "unidades" de codigo del proyecto, el
+            significado de unidad puede variar
+            (funcion, archivo, clase, componente, etc.)
+          </textarea>
+        </section>
+
+        <section data-markdown id="integration-testing">
+          <textarea data-template>
+            ## Integration testing
+
+            Probar el codigo un poco mas "desde afuera" de manera que
+            interactuen diferentes unidades. Por ejemplo en una API, serian
+            probar rutas individuales (interactua el router, controlador, la DB, etc.).
+
+            Como se supone que las unidades individuales funcionan porque las
+            probamos con unit tests, estas pruebas solo estarian probando la
+            integracion entre unidades.
+          </textarea>
+        </section>
+
+        <section data-markdown id="integration-testing-2">
+          <textarea data-template>
+            ## Integration testing
+
+            Por cierto, se suele usar una DB aparte de dev, staging y prod solo
+            para test, esta DB muchas veces se borra por completo y se
+            reconstruye desde las migraciones. Sus datos de prueba se rellenan
+            usando seeders.
+          </textarea>
+        </section>
+
+        <section data-markdown id="e2e-testing">
+          <textarea data-template>
+            ## End-to-end (E2E) testing
+
+            Usar herramientas de automatizacion para simular a un usuario
+            interactuando con la aplicacion.
+          </textarea>
+        </section>
+
+        <section data-markdown id="e2e-testing-2">
+          <textarea data-template>
+            ![Automated testing](./img/automated-testing.gif)
           </textarea>
         </section>
 

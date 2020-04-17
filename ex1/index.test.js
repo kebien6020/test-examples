@@ -2,7 +2,7 @@ const main = require('./index')
 
 console.red = str => console.error('\x1b[31m%s\x1b[0m', str)
 
-const test0 = () => {
+const test1 = () => {
   console.log('Test: ./index has a default export')
 
   if (main === undefined || typeof main === 'object') {
@@ -11,7 +11,7 @@ const test0 = () => {
   }
 }
 
-const test1 = () => {
+const test2 = () => {
   console.log('Test: main is a function')
 
   if (!(typeof main === 'function')) {
@@ -20,7 +20,7 @@ const test1 = () => {
   }
 }
 
-const test2 = () => {
+const test3 = () => {
   console.log('Test: main returns a string')
 
   const ret = main()
@@ -30,7 +30,7 @@ const test2 = () => {
   }
 }
 
-const test3 = () => {
+const test4 = () => {
   console.log('Test: main returns the expected string')
 
   const ret = main()
@@ -40,19 +40,7 @@ const test3 = () => {
   }
 }
 
-const test4 = () => {
-  console.log('Test: main uses the name passed instead of world')
-
-  const ret = main('Alice')
-  if (!(ret === 'Hello, Alice!')) {
-    console.red('Does not use the passed name correctly')
-    return
-  }
-}
-
-
 try {
-  test0()
   test1()
   test2()
   test3()
@@ -60,5 +48,3 @@ try {
 } catch (err) {
   console.red('One or more test failed')
 }
-
-
